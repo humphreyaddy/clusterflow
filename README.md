@@ -3,8 +3,7 @@
 Transmission cluster detection pipeline that fuses whole-genome sequencing (WGS) data
 with epidemiological metadata using graph-theoretic algorithms and parallel computing.
 
-Supersedes the K-means + SNP-chain approach of [SNP2Cluster](https://github.com/stanikae/SNP2Cluster)
-by introducing Leiden community detection, spectral clustering, temporal DAGs,
+We are introducing Leiden community detection, spectral clustering, temporal DAGs,
 centrality-based index case identification, and a real-time streaming mode with a
 live surveillance dashboard.
 
