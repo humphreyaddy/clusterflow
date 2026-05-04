@@ -1,0 +1,33 @@
+project_name: "kp_real_snp2cluster_example"
+output_dir: "tests/_real_results"
+
+inputs:
+  snp_matrix: "tests/fixtures/kp_real/snp_matrix.csv"
+  mlst_profiles: "tests/fixtures/kp_real/mlst.csv"
+  epi_metadata: "tests/fixtures/kp_real/epi.csv"
+
+thresholds:
+  snp_cutoff: 20
+  day_cutoff: 45
+  edge_weight_alpha: 0.4
+  edge_weight_beta: 0.4
+  edge_weight_gamma: 0.2
+
+clustering:
+  methods: ["snp_chains", "leiden", "spectral"]
+  bootstrap_n: 100
+  leiden_resolution: 1.0
+  random_state: 42
+
+distance_engine:
+  backend: "cpu"
+  n_jobs: 2
+
+streaming:
+  enabled: false
+  api_port: 8000
+
+visualization:
+  static: true
+  dashboard: false
+  dashboard_port: 8050

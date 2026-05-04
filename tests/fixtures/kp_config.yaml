@@ -1,0 +1,33 @@
+project_name: "kp_test_28"
+output_dir: "tests/_results"
+
+inputs:
+  snp_matrix: "tests/fixtures/kp_snp_matrix.tsv"
+  mlst_profiles: "tests/fixtures/kp_mlst.csv"
+  epi_metadata: "tests/fixtures/kp_epi.csv"
+
+thresholds:
+  snp_cutoff: 20
+  day_cutoff: 30
+  edge_weight_alpha: 0.4
+  edge_weight_beta: 0.4
+  edge_weight_gamma: 0.2
+
+clustering:
+  methods: ["snp_chains", "leiden", "spectral"]
+  bootstrap_n: 50
+  leiden_resolution: 1.0
+  random_state: 42
+
+distance_engine:
+  backend: "cpu"
+  n_jobs: 2
+
+streaming:
+  enabled: false
+  api_port: 8000
+
+visualization:
+  static: true
+  dashboard: false
+  dashboard_port: 8050

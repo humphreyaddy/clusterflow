@@ -1,0 +1,96 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "clusterflow"
+version = "0.1.0"
+description = "Transmission cluster detection from WGS + epidemiological metadata"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Alex" }]
+
+dependencies = [
+  # Core
+  "pydantic>=2.0",
+  "pyyaml>=6.0",
+  "numpy>=1.26",
+  "pandas>=2.0",
+  "scipy>=1.11",
+  # Graph
+  "python-igraph>=0.11",
+  "leidenalg>=0.10",
+  # Clustering
+  "scikit-learn>=1.3",
+  # Parallel
+  "joblib>=1.3",
+  "tqdm>=4.66",
+  # Visualisation (static)
+  "matplotlib>=3.8",
+  "seaborn>=0.13",
+  # Visualisation (interactive)
+  "plotly>=5.18",
+  "dash>=2.14",
+  "dash-cytoscape>=0.3",
+  # CLI
+  "typer>=0.9",
+  "rich>=13.0",
+  # API
+  "fastapi>=0.104",
+  "uvicorn>=0.24",
+  "websockets>=12.0",
+]
+
+[project.optional-dependencies]
+gpu = [
+  "cupy-cuda12x>=13.0",
+]
+r-bridge = [
+  "rpy2>=3.5",
+]
+dashboard = [
+  "dash>=2.14",
+  "dash-cytoscape>=0.3",
+  "plotly>=5.18",
+]
+streaming = [
+  "fastapi>=0.104",
+  "uvicorn>=0.24",
+  "websockets>=12.0",
+]
+dev = [
+  "pytest>=7.4",
+  "pytest-cov>=4.1",
+  "pytest-asyncio>=0.21",
+  "ruff>=0.1",
+  "black>=23.0",
+  "mypy>=1.6",
+  "pre-commit>=3.5",
+  "papermill>=2.5",
+  "mkdocs>=1.5",
+  "mkdocs-material>=9.4",
+  "mkdocstrings[python]>=0.24",
+]
+
+[project.scripts]
+clusterflow = "clusterflow.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["clusterflow"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=clusterflow --cov-report=term-missing"

@@ -1,0 +1,35 @@
+# ClusterFlow example configuration
+# See transmission_cluster_tool_plan.md §1.2 for full schema reference.
+
+project_name: "KP_neonatal_2024"
+output_dir: "./results"
+
+inputs:
+  snp_matrix: "data/snp_distances.tsv"   # TSV/CSV pairwise distance matrix
+  mlst_profiles: "data/mlst.csv"          # CSV with columns: isolate_id, ST, allele_1..N
+  epi_metadata: "data/epi.csv"            # CSV with columns: isolate_id, collection_date, facility, ward
+
+thresholds:
+  snp_cutoff: 20                          # Max SNP distance for an edge
+  day_cutoff: 14                          # Max collection date gap in days
+  edge_weight_alpha: 0.4                  # Weight for SNP distance term
+  edge_weight_beta: 0.4                   # Weight for temporal term
+  edge_weight_gamma: 0.2                  # Weight for MLST mismatch term
+
+clustering:
+  methods: ["snp_chains", "leiden", "spectral"]
+  bootstrap_n: 500
+  leiden_resolution: 1.0
+
+distance_engine:
+  backend: "auto"     # "auto" | "cpu" | "gpu" | "pairsnp"
+  n_jobs: -1
+
+streaming:
+  enabled: false
+  api_port: 8000
+
+visualization:
+  static: true
+  dashboard: false
+  dashboard_port: 8050

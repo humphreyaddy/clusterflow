@@ -1,0 +1,64 @@
+site_name: ClusterFlow
+site_description: Transmission cluster detection from WGS + epi metadata
+site_url: https://humphreyaddy.github.io/clusterflow/
+repo_url: https://github.com/humphreyaddy/clusterflow
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quickstart: quickstart.md
+  - Configuration: config_reference.md
+  - Data formats: data_formats.md
+  - Algorithms: algorithms.md
+  - Streaming: streaming.md
+  - Validation: validation.md
+  - SNP2Cluster migration: snp2cluster_migration.md
+  - API reference: api_reference.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+            members_order: source
+            docstring_style: numpy
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.snippets
+  - tables
+  - toc:
+      permalink: true

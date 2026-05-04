@@ -1,0 +1,34 @@
+# Phase 9.2 — full streaming stack with optional Redis job queue.
+
+services:
+  clusterflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: clusterflow:latest
+    container_name: clusterflow
+    command: ["serve", "--config", "/data/config.yaml", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"   # FastAPI
+      - "8050:8050"   # Dash dashboard
+    volumes:
+      - ./data:/data:ro
+      - clusterflow_results:/home/clusterflow/results
+    environment:
+      - CLUSTERFLOW_LOG_LEVEL=INFO
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: clusterflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  clusterflow_results:
+  redis_data:
