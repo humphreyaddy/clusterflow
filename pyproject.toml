@@ -59,6 +59,9 @@ streaming = [
   "uvicorn>=0.24",
   "websockets>=12.0",
 ]
+web = [
+  "streamlit>=1.30",
+]
 dev = [
   "pytest>=7.4",
   "pytest-cov>=4.1",

@@ -127,6 +127,11 @@ def run_pipeline(config: ClusterFlowConfig, *, run_viz: bool = True) -> Pipeline
         log.info("rendering static figures")
         generate_all_figures(result, g, dag, out_dir / "figures")
 
+        from clusterflow.web import write_pipeline_report
+
+        log.info("rendering HTML report")
+        write_pipeline_report(result, out_dir)
+
     log.info("pipeline complete: %d clusters detected", consensus.n_clusters)
     return result
 

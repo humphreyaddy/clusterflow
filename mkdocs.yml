@@ -35,6 +35,7 @@ nav:
   - Configuration: config_reference.md
   - Data formats: data_formats.md
   - Algorithms: algorithms.md
+  - Web UI: web.md
   - Streaming: streaming.md
   - Validation: validation.md
   - SNP2Cluster migration: snp2cluster_migration.md

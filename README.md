@@ -11,8 +11,28 @@ live surveillance dashboard.
 
 ## Status
 
-Phase 1 scaffolding only. See [transmission_cluster_tool_plan.md](transmission_cluster_tool_plan.md)
-for the full phased implementation plan.
+All nine phases implemented and validated end-to-end on the SNP2Cluster v0.5.4
+example *K. pneumoniae* dataset (ST25 and ST39 detected as distinct clusters).
+See [transmission_cluster_tool_plan.md](transmission_cluster_tool_plan.md) for
+the full design plan and [docs/](docs/) for usage.
+
+## Three ways to run
+
+```bash
+# 1. CLI
+clusterflow run --config config.yaml --output ./results
+
+# 2. Browser (Streamlit)
+pip install "clusterflow[web]"
+clusterflow web
+
+# 3. Live surveillance API + dashboard
+pip install "clusterflow[streaming,dashboard]"
+clusterflow serve --config config.yaml
+```
+
+Every batch run emits a self-contained `report.html` you can email or attach
+to a pull request.
 
 ## Layout
 

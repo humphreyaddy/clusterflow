@@ -161,6 +161,152 @@ def benchmark(
 
 
 @app.command()
+def web(
+    port: int = typer.Option(8501, help="Streamlit port"),
+    host: str = typer.Option("localhost"),
+    headless: bool = typer.Option(False, help="Run without auto-opening a browser"),
+) -> None:
+    """Launch the interactive Streamlit web UI."""
+    _setup_logging(False)
+    try:
+        import streamlit  # noqa: F401
+    except ImportError as e:
+        console.print(
+            "[red]streamlit not installed:[/] pip install 'clusterflow[web]'"
+        )
+        raise typer.Exit(code=3) from e
+
+    import subprocess
+    import sys
+
+    app_path = Path(__file__).parent / "web" / "streamlit_app.py"
+    cmd = [
+        sys.executable,
+        "-m",
+        "streamlit",
+        "run",
+        str(app_path),
+        "--server.port",
+        str(port),
+        "--server.address",
+        host,
+    ]
+    if headless:
+        cmd += ["--server.headless", "true"]
+    console.print(f"[green]launching web UI at[/] http://{host}:{port}")
+    subprocess.run(cmd, check=False)
+
+
+@app.command()
+def report(
+    output: Path = typer.Argument(..., help="Existing output_dir from `clusterflow run`"),
+) -> None:
+    """Re-render report.html from a previous run's artefacts."""
+    _setup_logging(False)
+    import json
+    from datetime import date
+
+    from clusterflow.models import (
+        BootstrapResult,
+        CentralityScores,
+        ClusterAssignment,
+        Isolate,
+        PipelineResult,
+        SNPMatrix,
+        TransmissionCluster,
+    )
+    from clusterflow.web import render_report
+
+    # Reconstruct a minimal PipelineResult from saved artefacts
+    summary_path = Path(output) / "pipeline_summary.json"
+    if not summary_path.exists():
+        console.print(f"[red]not a pipeline output dir:[/] {summary_path} missing")
+        raise typer.Exit(2)
+    summary = json.loads(summary_path.read_text())
+
+    # Cluster assignments per method
+    import pandas as pd
+
+    assigns_csv = Path(output) / "clusters" / "cluster_assignments.csv"
+    df = pd.read_csv(assigns_csv) if assigns_csv.exists() else pd.DataFrame()
+    method_assigns: dict[str, ClusterAssignment] = {}
+    consensus = ClusterAssignment(method="consensus", assignments={}, n_clusters=0)
+    if not df.empty:
+        for col in df.columns:
+            if col in {"isolate_id", "agreement_score", "ambiguous"}:
+                continue
+            assignments = dict(zip(df["isolate_id"], df[col].astype(int)))
+            ca = ClusterAssignment(
+                method=col, assignments=assignments,
+                n_clusters=len(set(assignments.values())),
+            )
+            if col == "consensus":
+                if "agreement_score" in df.columns:
+                    ca = ca.model_copy(
+                        update={
+                            "agreement_score": dict(zip(df["isolate_id"], df["agreement_score"])),
+                            "ambiguous": dict(zip(df["isolate_id"], df.get("ambiguous", pd.Series([False] * len(df))).astype(bool))),
+                        }
+                    )
+                consensus = ca
+            else:
+                method_assigns[col] = ca
+
+    # Reconstruct centrality + bootstrap from CSVs
+    centrality: list[CentralityScores] = []
+    cent_csv = Path(output) / "analysis" / "centrality_scores.csv"
+    if cent_csv.exists():
+        for _, r in pd.read_csv(cent_csv).iterrows():
+            centrality.append(CentralityScores(**r.to_dict()))
+
+    bootstrap: list[BootstrapResult] = []
+    boot_csv = Path(output) / "analysis" / "bootstrap_stability.csv"
+    if boot_csv.exists():
+        for _, r in pd.read_csv(boot_csv).iterrows():
+            bootstrap.append(BootstrapResult(**r.to_dict()))
+
+    # Cluster summaries from JSON
+    transmission_clusters: list[TransmissionCluster] = []
+    for c in summary.get("transmission_clusters", []):
+        transmission_clusters.append(
+            TransmissionCluster(
+                cluster_id=c["cluster_id"],
+                isolate_ids=[],  # not persisted in summary; OK for the report
+                sequence_types=c.get("sequence_types", []),
+                wards=c.get("wards", []),
+                date_range=(date.fromisoformat(c["date_range"][0]), date.fromisoformat(c["date_range"][1])),
+                index_case_candidate=c.get("index_case_candidate"),
+                confidence=c.get("confidence", 0.0),
+            )
+        )
+
+    # Minimal SNPMatrix + isolates so PipelineResult validates (only used in advanced sections)
+    import numpy as np
+
+    iso_ids = list(consensus.assignments) or list(df.get("isolate_id", []))
+    n = max(len(iso_ids), 1)
+    snp = SNPMatrix(isolate_ids=iso_ids or ["x"], distances=np.zeros((max(len(iso_ids), 1), max(len(iso_ids), 1))))
+    isolates = {
+        i: Isolate(isolate_id=i, collection_date=date(2000, 1, 1), facility="?", ward="?")
+        for i in iso_ids
+    }
+
+    result = PipelineResult(
+        project_name=summary.get("project_name", "report"),
+        n_isolates=summary.get("n_isolates", n),
+        isolates=isolates,
+        snp_matrix=snp,
+        cluster_assignments=method_assigns,
+        consensus=consensus,
+        transmission_clusters=transmission_clusters,
+        centrality=centrality,
+        bootstrap=bootstrap,
+    )
+    path = render_report(result, Path(output))
+    console.print(f"[green]wrote[/] {path}")
+
+
+@app.command()
 def serve(
     config: Path = typer.Option(..., "--config", "-c"),
     port: int = typer.Option(8000, help="API port"),
